@@ -5,6 +5,7 @@ import com.votum.votum_backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -13,10 +14,14 @@ public class AuthController {
 
     private final UserService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    @PostMapping(value = "/register", consumes = "multipart/form-data")
+    public ResponseEntity<?> register(
+            @RequestPart("data") RegisterRequest request,
+            @RequestPart("photo") MultipartFile photo,
+            @RequestPart("aadhaarPdf") MultipartFile aadhaarPdf
+    ) throws Exception {
 
-        userService.register(request);
+        userService.register(request, photo, aadhaarPdf);
 
         return ResponseEntity.ok("User registered successfully. Await admin approval.");
     }
