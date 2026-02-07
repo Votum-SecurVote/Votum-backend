@@ -39,3 +39,13 @@ CREATE TABLE user_biometrics (
   aadhaar_pdf_path TEXT
 );
 ```
+
+### Mac/Linux
+```bash
+export DB_PASSWORD=your_password
+```
+
+### Windows
+```bash
+set DB_PASSWORD=your_password
+```
