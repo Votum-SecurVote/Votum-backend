@@ -5,6 +5,7 @@ import com.votum.votum_backend.model.User;
 import com.votum.votum_backend.model.UserBiometrics;
 import com.votum.votum_backend.repository.UserRepository;
 import com.votum.votum_backend.repository.UserBiometricsRepository;
+import com.votum.votum_backend.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +26,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserBiometricsRepository biometricsRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Value("${file.storage.path}")
     private String storagePath;
@@ -89,4 +91,14 @@ public class UserService {
             throw new RuntimeException("Aadhaar hashing failed");
         }
     }
+
+    public String login(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new RuntimeException("Invalid password");
+        }
+        return jwtUtil.generateToken(email);
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.votum.votum_backend.controller;
 
+import com.votum.votum_backend.dto.LoginRequest;
 import com.votum.votum_backend.dto.RegisterRequest;
 import com.votum.votum_backend.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -32,4 +33,11 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Error parsing request: " + e.getMessage());
         }
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        String token = userService.login(request.getEmail(), request.getPassword());
+        return ResponseEntity.ok(token);
+    }
+
 }
