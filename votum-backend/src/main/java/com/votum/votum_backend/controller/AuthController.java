@@ -16,13 +16,20 @@ public class AuthController {
 
     @PostMapping(value = "/register", consumes = "multipart/form-data")
     public ResponseEntity<?> register(
-            @RequestPart("data") RegisterRequest request,
+            @RequestPart("data") String requestJson,
             @RequestPart("photo") MultipartFile photo,
             @RequestPart("aadhaarPdf") MultipartFile aadhaarPdf
     ) throws Exception {
 
-        userService.register(request, photo, aadhaarPdf);
-
-        return ResponseEntity.ok("User registered successfully. Await admin approval.");
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            RegisterRequest request = mapper.readValue(requestJson, RegisterRequest.class);
+            
+            userService.register(request, photo, aadhaarPdf);
+            return ResponseEntity.ok("User registered successfully. Await admin approval.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error parsing request: " + e.getMessage());
+        }
     }
 }

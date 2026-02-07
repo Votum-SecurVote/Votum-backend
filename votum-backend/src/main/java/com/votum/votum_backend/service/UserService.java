@@ -64,7 +64,7 @@ public class UserService {
         biometrics.setUser(user);
         biometrics.setPhotoPath(photoPath);
         biometrics.setAadhaarPdfPath(aadhaarPath);
-        biometrics.setFaceEmbedding(null);
+        biometrics.setFaceEmbedding(new byte[0]);
 
         biometricsRepository.save(biometrics);
     }
