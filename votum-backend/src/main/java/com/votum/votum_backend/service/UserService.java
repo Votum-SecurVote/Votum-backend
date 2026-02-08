@@ -1,10 +1,12 @@
 package com.votum.votum_backend.service;
 
 import com.votum.votum_backend.dto.RegisterRequest;
+import com.votum.votum_backend.dto.UserProfileResponse;
 import com.votum.votum_backend.model.User;
 import com.votum.votum_backend.model.UserBiometrics;
 import com.votum.votum_backend.repository.UserRepository;
 import com.votum.votum_backend.repository.UserBiometricsRepository;
+import com.votum.votum_backend.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +27,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserBiometricsRepository biometricsRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Value("${file.storage.path}")
     private String storagePath;
@@ -89,4 +92,34 @@ public class UserService {
             throw new RuntimeException("Aadhaar hashing failed");
         }
     }
+
+    public String login(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new RuntimeException("Invalid password");
+        }
+        return jwtUtil.generateToken(email);
+    }
+
+    public UserProfileResponse getProfile(String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserBiometrics biometrics = biometricsRepository.findById(user.getId())
+                .orElse(null);
+
+        return UserProfileResponse.builder()
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .dob(user.getDob())
+                .gender(user.getGender())
+                .address(user.getAddress())
+                .status(user.getStatus())
+                .photoPath(biometrics != null ? biometrics.getPhotoPath() : null)
+                .build();
+        }
+
 }
