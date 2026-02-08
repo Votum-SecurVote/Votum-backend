@@ -3,14 +3,13 @@ package com.votum.votum_backend.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(name = "admins")
 @Data
-public class User {
+public class Admin {
 
     @Id
     @GeneratedValue
@@ -21,24 +20,7 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    @Column(unique = true)
-    private String phone;
-
     private String passwordHash;
-
-    @Column(unique = true)
-    private String aadhaarHash;
-
-    @Column(nullable = false)
-    private String role;
-
-    private LocalDate dob;
-
-    private String gender;
-
-    private String address;
-
-    private String status;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

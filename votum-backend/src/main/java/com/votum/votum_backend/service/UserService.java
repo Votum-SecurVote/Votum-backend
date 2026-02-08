@@ -54,6 +54,7 @@ public class UserService {
         user.setGender(request.getGender());
         user.setAddress(request.getAddress());
         user.setStatus("PENDING");
+        user.setRole("USER");
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
@@ -99,7 +100,7 @@ public class UserService {
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
             throw new RuntimeException("Invalid password");
         }
-        return jwtUtil.generateToken(email);
+        return jwtUtil.generateToken(email, user.getRole());
     }
 
     public UserProfileResponse getProfile(String email) {
