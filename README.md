@@ -23,6 +23,7 @@ CREATE TABLE users (
   dob DATE NOT NULL,
   gender TEXT,
   address TEXT,
+  role VARCHAR(20) DEFAULT 'USER',
 
   status TEXT CHECK (status IN ('PENDING','APPROVED','REJECTED')) DEFAULT 'PENDING',
 
@@ -48,4 +49,35 @@ export DB_PASSWORD=your_password
 ### Windows
 ```bash
 set DB_PASSWORD=your_password
+```
+
+## Admin
+
+```sql
+CREATE TABLE admins (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    full_name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(20) DEFAULT 'ADMIN',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+```sql
+INSERT INTO admins (
+    full_name,
+    email,
+    password_hash,
+    created_at,
+    updated_at
+)
+VALUES (
+    'System Admin',
+    'admin@votum.com',
+    '$2a$12$k2vnWiFuqvZ3EqKpFVMzIuK1nSUrL9sAFhFv.squlBuz5jYQfEKpy',
+    NOW(),
+    NOW()
+);
 ```
