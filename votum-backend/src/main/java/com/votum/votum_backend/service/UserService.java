@@ -1,6 +1,7 @@
 package com.votum.votum_backend.service;
 
 import com.votum.votum_backend.dto.RegisterRequest;
+import com.votum.votum_backend.dto.UserProfileResponse;
 import com.votum.votum_backend.model.User;
 import com.votum.votum_backend.model.UserBiometrics;
 import com.votum.votum_backend.repository.UserRepository;
@@ -100,5 +101,25 @@ public class UserService {
         }
         return jwtUtil.generateToken(email);
     }
+
+    public UserProfileResponse getProfile(String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserBiometrics biometrics = biometricsRepository.findById(user.getId())
+                .orElse(null);
+
+        return UserProfileResponse.builder()
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .dob(user.getDob())
+                .gender(user.getGender())
+                .address(user.getAddress())
+                .status(user.getStatus())
+                .photoPath(biometrics != null ? biometrics.getPhotoPath() : null)
+                .build();
+        }
 
 }
