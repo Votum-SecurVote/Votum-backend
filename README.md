@@ -81,3 +81,17 @@ VALUES (
     NOW()
 );
 ```
+
+## elections
+
+```sql
+CREATE TABLE elections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    description TEXT,
+    start_date TIMESTAMP NOT NULL,
+    end_date TIMESTAMP NOT NULL,
+    status VARCHAR(20) DEFAULT 'DRAFT',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+```
