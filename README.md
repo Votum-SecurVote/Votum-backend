@@ -95,3 +95,26 @@ CREATE TABLE elections (
     created_at TIMESTAMP DEFAULT NOW()
 );
 ```
+
+```sql
+CREATE TABLE ballots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    election_id UUID NOT NULL REFERENCES elections(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
+    max_selections INTEGER DEFAULT 1,
+    status VARCHAR(20) DEFAULT 'DRAFT',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+```sql
+CREATE TABLE candidates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ballot_id UUID NOT NULL REFERENCES ballots(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    party TEXT,
+    symbol TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+```
