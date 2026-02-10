@@ -118,3 +118,34 @@ CREATE TABLE candidates (
     created_at TIMESTAMP DEFAULT NOW()
 );
 ```
+
+## Kiosk
+
+```sql
+CREATE TABLE votes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    user_id UUID NOT NULL,
+    election_id UUID NOT NULL,
+    ballot_id UUID NOT NULL,
+    candidate_id UUID NOT NULL,
+    voted_at TIMESTAMP,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_vote_user
+        FOREIGN KEY (user_id) REFERENCES users(id),
+
+    CONSTRAINT fk_vote_election
+        FOREIGN KEY (election_id) REFERENCES elections(id),
+
+    CONSTRAINT fk_vote_ballot
+        FOREIGN KEY (ballot_id) REFERENCES ballots(id),
+
+    CONSTRAINT fk_vote_candidate
+        FOREIGN KEY (candidate_id) REFERENCES candidates(id),
+
+    CONSTRAINT unique_user_election
+        UNIQUE (user_id, election_id)
+);
+```
