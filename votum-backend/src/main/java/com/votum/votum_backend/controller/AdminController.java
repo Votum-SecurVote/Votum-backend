@@ -11,6 +11,8 @@ import com.votum.votum_backend.model.Election;
 import com.votum.votum_backend.dto.CreateBallotRequest;
 import java.util.UUID;
 import com.votum.votum_backend.dto.CreateCandidateRequest;
+import java.util.List;
+import com.votum.votum_backend.model.Ballot;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -53,6 +55,29 @@ public class AdminController {
 
         return ResponseEntity.ok(
                 adminElectionService.createCandidate(ballotId, request)
+        );
+    }
+
+    @GetMapping("/elections")
+    public ResponseEntity<?> getAllElections() {
+        return ResponseEntity.ok(adminElectionService.getAllElections());
+    }
+
+    @GetMapping("/elections/{electionId}/ballots")
+    public ResponseEntity<?> getBallotsByElection(
+        @PathVariable UUID electionId) {
+
+        return ResponseEntity.ok(
+            adminElectionService.getBallotsByElection(electionId)
+        );
+    }
+
+    @GetMapping("/ballots/{ballotId}/candidates")
+    public ResponseEntity<?> getCandidatesByBallot(
+        @PathVariable UUID ballotId) {
+
+        return ResponseEntity.ok(
+            adminElectionService.getCandidatesByBallot(ballotId)
         );
     }
 

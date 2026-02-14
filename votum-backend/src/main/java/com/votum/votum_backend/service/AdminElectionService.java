@@ -14,6 +14,7 @@ import com.votum.votum_backend.dto.CreateCandidateRequest;
 import com.votum.votum_backend.repository.BallotRepository;
 import com.votum.votum_backend.repository.CandidateRepository;
 import com.votum.votum_backend.repository.ElectionRepository;
+import java.util.List;
 
 
 import java.time.LocalDateTime;
@@ -71,6 +72,18 @@ public class AdminElectionService {
                 .build();
 
         return candidateRepository.save(candidate);
+    }
+
+    public List<Election> getAllElections() {
+        return electionRepository.findAll();
+    }
+
+    public List<Ballot> getBallotsByElection(UUID electionId) {
+        return ballotRepository.findByElection_Id(electionId);
+    }
+
+    public List<Candidate> getCandidatesByBallot(UUID ballotId) {
+        return candidateRepository.findByBallot_Id(ballotId);
     }
 
 }
