@@ -53,7 +53,7 @@ jobs:
         run: docker push ${{ secrets.DOCKER_USERNAME }}/votum-backend:latest
 
       # -------------------------
-      # Deploy to EC2
+      # Deploy to EC2 (Reverse Proxy Architecture)
       # -------------------------
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -64,15 +64,21 @@ jobs:
           script: |
             cd ~/votum
 
+            # Create Docker network if not exists
+            docker network create votum-network || true
+
+            # Pull latest image
             docker pull ${{ secrets.DOCKER_USERNAME }}/votum-backend:latest
 
+            # Stop and remove old container
             docker stop votum-backend || true
             docker rm votum-backend || true
 
+            # Run backend WITHOUT exposing port publicly
             docker run -d \
               --name votum-backend \
               --restart always \
-              -p 8080:8080 \
+              --network votum-network \
               --env-file .env \
               ${{ secrets.DOCKER_USERNAME }}/votum-backend:latest
 
