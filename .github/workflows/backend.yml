@@ -1,0 +1,48 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build Jar
+        run: mvn clean install -DskipTests
+
+      - name: Login DockerHub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/votum-backend:latest .
+
+      - name: Push Image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/votum-backend:latest
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/votum-backend:latest
+            docker stop votum-backend || true
+            docker rm votum-backend || true
+            docker run -d \
+              --name votum-backend \
+              -p 8080:8080 \
+              --env-file .env \
+              ${{ secrets.DOCKER_USERNAME }}/votum-backend:latest
