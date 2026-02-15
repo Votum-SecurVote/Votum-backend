@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  backend:
+    image: votum-backend:1.0
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
