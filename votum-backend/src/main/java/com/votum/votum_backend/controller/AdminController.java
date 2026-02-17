@@ -92,4 +92,10 @@ public class AdminController {
                 adminElectionService.getCandidatesByBallot(ballotId)
         );
     }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<UserProfileResponse>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
 }

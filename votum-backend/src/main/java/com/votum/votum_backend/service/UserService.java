@@ -182,4 +182,22 @@ public class UserService {
         user.setStatus("REJECTED");
         userRepository.save(user);
     }
+
+    public List<UserProfileResponse> getAllUsers() {
+
+    return userRepository.findAll().stream()
+            .map(user -> UserProfileResponse.builder()
+                    .userId(user.getId().toString())
+                    .fullName(user.getFullName())
+                    .email(user.getEmail())
+                    .phone(user.getPhone())
+                    .dob(user.getDob())
+                    .gender(user.getGender())
+                    .address(user.getAddress())
+                    .status(user.getStatus())
+                    .build()
+            )
+            .toList();
+    }
+
 }
