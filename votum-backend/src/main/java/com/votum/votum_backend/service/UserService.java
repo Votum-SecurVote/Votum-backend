@@ -7,7 +7,9 @@ import com.votum.votum_backend.model.UserBiometrics;
 import com.votum.votum_backend.repository.UserRepository;
 import com.votum.votum_backend.repository.UserBiometricsRepository;
 import com.votum.votum_backend.security.JwtUtil;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import java.nio.file.*;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -31,6 +34,8 @@ public class UserService {
 
     @Value("${file.storage.path}")
     private String storagePath;
+
+    // ================= REGISTER =================
 
     public void register(RegisterRequest request,
                          MultipartFile photo,
@@ -53,7 +58,7 @@ public class UserService {
         user.setDob(request.getDob());
         user.setGender(request.getGender());
         user.setAddress(request.getAddress());
-        user.setStatus("PENDING");
+        user.setStatus("PENDING");   // IMPORTANT
         user.setRole("USER");
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
@@ -73,6 +78,8 @@ public class UserService {
         biometricsRepository.save(biometrics);
     }
 
+    // ================= FILE SAVE =================
+
     private String saveFile(MultipartFile file, String folder) throws IOException {
         Path dir = Paths.get(storagePath, folder);
         Files.createDirectories(dir);
@@ -85,31 +92,41 @@ public class UserService {
         return filePath.toString();
     }
 
+    // ================= HASH AADHAAR =================
+
     private String hashAadhaar(String aadhaar) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            return Base64.getEncoder().encodeToString(md.digest(aadhaar.getBytes()));
+            return Base64.getEncoder()
+                    .encodeToString(md.digest(aadhaar.getBytes()));
         } catch (Exception e) {
             throw new RuntimeException("Aadhaar hashing failed");
         }
     }
 
+    // ================= LOGIN =================
+
     public String login(String email, String password) {
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
             throw new RuntimeException("Invalid password");
         }
+
         return jwtUtil.generateToken(email, user.getRole());
     }
+
+    // ================= GET PROFILE =================
 
     public UserProfileResponse getProfile(String email) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        UserBiometrics biometrics = biometricsRepository.findById(user.getId())
-                .orElse(null);
+        UserBiometrics biometrics =
+                biometricsRepository.findById(user.getId()).orElse(null);
 
         return UserProfileResponse.builder()
                 .fullName(user.getFullName())
@@ -121,6 +138,48 @@ public class UserService {
                 .status(user.getStatus())
                 .photoPath(biometrics != null ? biometrics.getPhotoPath() : null)
                 .build();
-        }
+    }
 
+    // ================= ADMIN - GET PENDING USERS =================
+
+    public List<UserProfileResponse> getPendingUsers() {
+
+        List<User> users = userRepository.findByStatus("PENDING");
+
+        return users.stream()
+                .map(user -> UserProfileResponse.builder()
+                        .fullName(user.getFullName())
+                        .userId(user.getId().toString())
+                        .email(user.getEmail())
+                        .phone(user.getPhone())
+                        .dob(user.getDob())
+                        .gender(user.getGender())
+                        .address(user.getAddress())
+                        .status(user.getStatus())
+                        .build()
+                )
+                .toList();
+    }
+
+    // ================= ADMIN - APPROVE =================
+
+    public void approveUser(UUID userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setStatus("APPROVED");
+        userRepository.save(user);
+    }
+
+    // ================= ADMIN - REJECT =================
+
+    public void rejectUser(UUID userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setStatus("REJECTED");
+        userRepository.save(user);
+    }
 }
