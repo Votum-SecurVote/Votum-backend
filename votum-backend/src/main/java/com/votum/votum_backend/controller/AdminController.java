@@ -98,4 +98,25 @@ public class AdminController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    @PutMapping("/elections/{id}/publish")
+    public ResponseEntity<Election> publishElection(@PathVariable UUID id) {
+        return ResponseEntity.ok(
+            adminElectionService.publishElection(id)
+        );
+    }
+
+    @PutMapping("/elections/{id}/unpublish")
+    public ResponseEntity<Election> unpublishElection(@PathVariable UUID id) {
+        return ResponseEntity.ok(
+            adminElectionService.unpublishElection(id)
+        );
+    }
+
+    @DeleteMapping("/elections/{id}")
+    public ResponseEntity<String> deleteElection(@PathVariable UUID id) {
+        adminElectionService.deleteElection(id);
+        return ResponseEntity.ok("Election deleted successfully");
+    }
+
+
 }
