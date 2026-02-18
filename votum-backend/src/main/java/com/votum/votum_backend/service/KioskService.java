@@ -50,7 +50,7 @@ public class KioskService {
 
     // 🗳 Get active election
     public Election getActiveElection() {
-        List<Election> activeElections = electionRepository.findByStatus("ACTIVE");
+        List<Election> activeElections = electionRepository.findByStatus("PUBLISHED");
         if (activeElections.isEmpty()) {
             throw new RuntimeException("No active election found");
         }
