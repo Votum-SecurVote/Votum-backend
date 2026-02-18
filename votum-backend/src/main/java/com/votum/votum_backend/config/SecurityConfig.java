@@ -30,6 +30,7 @@ public class SecurityConfig {
                         "/error"
                 ).permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/user/**").hasRole("USER")
                 .requestMatchers("/api/kiosk/login").permitAll()
                 .anyRequest().authenticated()
             )

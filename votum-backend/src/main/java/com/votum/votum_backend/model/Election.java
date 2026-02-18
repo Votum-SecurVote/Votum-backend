@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "elections")
@@ -29,4 +32,8 @@ public class Election {
     private String status;
 
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "election", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<Ballot> ballots;
 }

@@ -2,9 +2,9 @@ package com.votum.votum_backend.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "candidates")
@@ -21,6 +21,7 @@ public class Candidate {
 
     @ManyToOne
     @JoinColumn(name = "ballot_id", nullable = false)
+    @JsonBackReference
     private Ballot ballot;
 
     @Column(nullable = false)
