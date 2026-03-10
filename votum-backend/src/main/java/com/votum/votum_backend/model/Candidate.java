@@ -31,5 +31,9 @@ public class Candidate {
 
     private String symbol;
 
+    @Column(name = "photo_path")
+    private String photoPath;
+
     private LocalDateTime createdAt;
 }
+
