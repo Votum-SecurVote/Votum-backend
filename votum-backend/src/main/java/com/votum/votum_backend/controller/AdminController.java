@@ -34,6 +34,11 @@ public class AdminController {
         return ResponseEntity.ok(token);
     }
 
+    @GetMapping("/metrics")
+    public ResponseEntity<AdminMetricsResponse> getMetrics() {
+        return ResponseEntity.ok(adminElectionService.getMetrics());
+    }
+
     // ================= USER APPROVAL =================
 
     @GetMapping("/pending-users")
