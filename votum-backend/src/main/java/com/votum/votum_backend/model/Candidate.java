@@ -35,6 +35,10 @@ public class Candidate {
     @Column(name = "photo_path")
     private String photoPath;
 
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    @Builder.Default
+    private Integer voteCount = 0;
+
     private LocalDateTime createdAt;
 }
 
