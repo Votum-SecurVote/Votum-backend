@@ -30,6 +30,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final FileStorageService fileStorageService;
+    private final AuditLogService auditLogService;
 
     // ================= REGISTER =================
 
@@ -163,6 +164,7 @@ public class UserService {
 
         user.setStatus("APPROVED");
         userRepository.save(user);
+        auditLogService.logAction("Approved user: " + user.getFullName() + " (" + user.getEmail() + ")");
     }
 
     // ================= ADMIN - REJECT =================
@@ -174,6 +176,7 @@ public class UserService {
 
         user.setStatus("REJECTED");
         userRepository.save(user);
+        auditLogService.logAction("Rejected user: " + user.getFullName() + " (" + user.getEmail() + ")");
     }
 
     public List<UserProfileResponse> getAllUsers() {

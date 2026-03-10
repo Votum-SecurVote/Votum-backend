@@ -7,6 +7,7 @@ import com.votum.votum_backend.dto.CreateElectionRequest;
 import com.votum.votum_backend.model.Ballot;
 import com.votum.votum_backend.model.Candidate;
 import com.votum.votum_backend.model.Election;
+import com.votum.votum_backend.repository.AuditLogRepository;
 import com.votum.votum_backend.repository.BallotRepository;
 import com.votum.votum_backend.repository.CandidateRepository;
 import com.votum.votum_backend.repository.ElectionRepository;
@@ -29,6 +30,8 @@ public class AdminElectionService {
     private final CandidateRepository candidateRepository;
     private final FileStorageService fileStorageService;
     private final UserRepository userRepository;
+    private final AuditLogRepository auditLogRepository;
+    private final AuditLogService auditLogService;
 
     /* =========================================================
                             ELECTION
@@ -45,23 +48,30 @@ public class AdminElectionService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return electionRepository.save(election);
+        Election savedElection = electionRepository.save(election);
+        auditLogService.logAction("Created election: " + savedElection.getTitle());
+        return savedElection;
     }
 
     public Election publishElection(UUID electionId) {
         Election election = getElectionOrThrow(electionId);
         election.setStatus("PUBLISHED");
-        return electionRepository.save(election);
+        Election savedElection = electionRepository.save(election);
+        auditLogService.logAction("Published election: " + savedElection.getTitle());
+        return savedElection;
     }
 
     public Election unpublishElection(UUID electionId) {
         Election election = getElectionOrThrow(electionId);
         election.setStatus("DRAFT");
-        return electionRepository.save(election);
+        Election savedElection = electionRepository.save(election);
+        auditLogService.logAction("Unpublished election: " + savedElection.getTitle());
+        return savedElection;
     }
 
     public void deleteElection(UUID electionId) {
         Election election = getElectionOrThrow(electionId);
+        auditLogService.logAction("Deleted election: " + election.getTitle());
         electionRepository.delete(election);
     }
 
@@ -81,9 +91,7 @@ public class AdminElectionService {
                 .activeElections(activeElections)
                 .pendingCandidates(pendingUsers)
                 .approvedCandidates(approvedUsers)
-                .recentActivity(List.of(
-                        "System metrics loaded at " + LocalDateTime.now().toString()
-                ))
+                .recentActivity(auditLogRepository.findTop10ByOrderByTimeDesc())
                 .build();
     }
 
@@ -109,7 +117,9 @@ public class AdminElectionService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return ballotRepository.save(ballot);
+        Ballot savedBallot = ballotRepository.save(ballot);
+        auditLogService.logAction("Created ballot: " + savedBallot.getTitle() + " for election: " + election.getTitle());
+        return savedBallot;
     }
 
     public Ballot publishBallot(UUID ballotId) {
@@ -127,13 +137,17 @@ public class AdminElectionService {
         ballot.setStatus("PUBLISHED");
         ballotRepository.saveAll(ballots);
 
-        return ballotRepository.save(ballot);
+        Ballot publishedBallot = ballotRepository.save(ballot);
+        auditLogService.logAction("Published ballot: " + publishedBallot.getTitle() + " for election: " + ballot.getElection().getTitle());
+        return publishedBallot;
     }
 
     public Ballot unpublishBallot(UUID ballotId) {
         Ballot ballot = getBallotOrThrow(ballotId);
         ballot.setStatus("DRAFT");
-        return ballotRepository.save(ballot);
+        Ballot unpublishedBallot = ballotRepository.save(ballot);
+        auditLogService.logAction("Unpublished ballot: " + unpublishedBallot.getTitle() + " for election: " + ballot.getElection().getTitle());
+        return unpublishedBallot;
     }
 
     public List<Ballot> getBallotsByElection(UUID electionId) {
@@ -199,6 +213,7 @@ public class AdminElectionService {
             candidate = candidateRepository.save(candidate);
         }
 
+        auditLogService.logAction("Added candidate: " + candidate.getName() + " to ballot: " + ballot.getTitle());
         return candidate;
     }
 

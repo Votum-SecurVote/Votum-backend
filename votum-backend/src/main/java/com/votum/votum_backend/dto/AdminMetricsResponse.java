@@ -1,5 +1,6 @@
 package com.votum.votum_backend.dto;
 
+import com.votum.votum_backend.model.AuditLog;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,5 +18,5 @@ public class AdminMetricsResponse {
     private long activeElections;
     private long pendingCandidates;
     private long approvedCandidates;
-    private List<String> recentActivity;
+    private List<AuditLog> recentActivity;
 }
