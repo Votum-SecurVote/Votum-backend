@@ -16,7 +16,10 @@ public class CorsConfig {
         config.setAllowedOrigins(
             java.util.List.of(
                 "http://localhost:3000",
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "http://13.48.1.139",
+                "http://13.48.1.139:3000",
+                "http://13.48.1.139:80"
             )
         );
         config.addAllowedHeader("*");
