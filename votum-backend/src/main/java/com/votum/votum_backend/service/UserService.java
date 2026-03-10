@@ -10,13 +10,11 @@ import com.votum.votum_backend.security.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.*;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -31,9 +29,7 @@ public class UserService {
     private final UserBiometricsRepository biometricsRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-
-    @Value("${file.storage.path}")
-    private String storagePath;
+    private final FileStorageService fileStorageService;
 
     // ================= REGISTER =================
 
@@ -65,9 +61,15 @@ public class UserService {
 
         userRepository.save(user);
 
-        // Save files
-        String photoPath = saveFile(photo, "photos");
-        String aadhaarPath = saveFile(aadhaarPdf, "aadhaar");
+        // Save files with UUID-based filenames inside structured folders
+        String photoUuid = UUID.randomUUID().toString();
+        String aadhaarUuid = UUID.randomUUID().toString();
+
+        String photoPath = fileStorageService.saveFile(
+                photo, "users", "photos", photoUuid + ".jpg");
+
+        String aadhaarPath = fileStorageService.saveFile(
+                aadhaarPdf, "users", "aadhaar", aadhaarUuid + ".pdf");
 
         UserBiometrics biometrics = new UserBiometrics();
         biometrics.setUser(user);
@@ -76,20 +78,6 @@ public class UserService {
         biometrics.setFaceEmbedding(new byte[0]);
 
         biometricsRepository.save(biometrics);
-    }
-
-    // ================= FILE SAVE =================
-
-    private String saveFile(MultipartFile file, String folder) throws IOException {
-        Path dir = Paths.get(storagePath, folder);
-        Files.createDirectories(dir);
-
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        Path filePath = dir.resolve(fileName);
-
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-        return filePath.toString();
     }
 
     // ================= HASH AADHAAR =================
@@ -185,19 +173,19 @@ public class UserService {
 
     public List<UserProfileResponse> getAllUsers() {
 
-    return userRepository.findAll().stream()
-            .map(user -> UserProfileResponse.builder()
-                    .userId(user.getId().toString())
-                    .fullName(user.getFullName())
-                    .email(user.getEmail())
-                    .phone(user.getPhone())
-                    .dob(user.getDob())
-                    .gender(user.getGender())
-                    .address(user.getAddress())
-                    .status(user.getStatus())
-                    .build()
-            )
-            .toList();
+        return userRepository.findAll().stream()
+                .map(user -> UserProfileResponse.builder()
+                        .userId(user.getId().toString())
+                        .fullName(user.getFullName())
+                        .email(user.getEmail())
+                        .phone(user.getPhone())
+                        .dob(user.getDob())
+                        .gender(user.getGender())
+                        .address(user.getAddress())
+                        .status(user.getStatus())
+                        .build()
+                )
+                .toList();
     }
 
 }

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -129,11 +130,14 @@ class AdminIntegrationTest {
         request.setStartDate(LocalDateTime.now().plusDays(1));
         request.setEndDate(LocalDateTime.now().plusDays(30));
 
+        MockMultipartFile requestPart = new MockMultipartFile(
+                "request", "", MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(request));
+
         // Act & Assert
-        mockMvc.perform(post("/api/admin/elections")
-                        .header("Authorization", "Bearer " + adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(multipart("/api/admin/elections")
+                        .file(requestPart)
+                        .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.title").value("General Election 2024"))
@@ -205,11 +209,14 @@ class AdminIntegrationTest {
         request.setParty("Independent");
         request.setSymbol("🏛️");
 
+        MockMultipartFile requestPart = new MockMultipartFile(
+                "request", "", MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(request));
+
         // Act & Assert
-        mockMvc.perform(post("/api/admin/ballots/" + ballot.getId() + "/candidates")
-                        .header("Authorization", "Bearer " + adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(multipart("/api/admin/ballots/" + ballot.getId() + "/candidates")
+                        .file(requestPart)
+                        .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.name").value("Michael Brown"))
@@ -449,10 +456,13 @@ class AdminIntegrationTest {
         electionRequest.setStartDate(LocalDateTime.now().plusDays(1));
         electionRequest.setEndDate(LocalDateTime.now().plusDays(30));
 
-        String electionResponse = mockMvc.perform(post("/api/admin/elections")
-                        .header("Authorization", "Bearer " + adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(electionRequest)))
+        MockMultipartFile electionRequestPart = new MockMultipartFile(
+                "request", "", MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(electionRequest));
+
+        String electionResponse = mockMvc.perform(multipart("/api/admin/elections")
+                        .file(electionRequestPart)
+                        .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -482,10 +492,13 @@ class AdminIntegrationTest {
         candidate1Request.setParty("Party One");
         candidate1Request.setSymbol("1️⃣");
 
-        mockMvc.perform(post("/api/admin/ballots/" + createdBallot.getId() + "/candidates")
-                        .header("Authorization", "Bearer " + adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(candidate1Request)))
+        MockMultipartFile candidate1Part = new MockMultipartFile(
+                "request", "", MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(candidate1Request));
+
+        mockMvc.perform(multipart("/api/admin/ballots/" + createdBallot.getId() + "/candidates")
+                        .file(candidate1Part)
+                        .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
 
         CreateCandidateRequest candidate2Request = new CreateCandidateRequest();
@@ -493,10 +506,13 @@ class AdminIntegrationTest {
         candidate2Request.setParty("Party Two");
         candidate2Request.setSymbol("2️⃣");
 
-        mockMvc.perform(post("/api/admin/ballots/" + createdBallot.getId() + "/candidates")
-                        .header("Authorization", "Bearer " + adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(candidate2Request)))
+        MockMultipartFile candidate2Part = new MockMultipartFile(
+                "request", "", MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(candidate2Request));
+
+        mockMvc.perform(multipart("/api/admin/ballots/" + createdBallot.getId() + "/candidates")
+                        .file(candidate2Part)
+                        .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
 
         // Verify all data persisted

@@ -11,7 +11,9 @@ import com.votum.votum_backend.repository.CandidateRepository;
 import com.votum.votum_backend.repository.ElectionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -23,12 +25,18 @@ public class AdminElectionService {
     private final ElectionRepository electionRepository;
     private final BallotRepository ballotRepository;
     private final CandidateRepository candidateRepository;
+    private final FileStorageService fileStorageService;
 
     /* =========================================================
                             ELECTION
        ========================================================= */
 
-    public Election createElection(CreateElectionRequest request) {
+    /**
+     * Creates an election and, if a logo file is provided, saves it to
+     * Storage/elections/{electionId}/logo.png and stores the path on the entity.
+     */
+    public Election createElection(CreateElectionRequest request, MultipartFile logoFile)
+            throws IOException {
 
         Election election = Election.builder()
                 .title(request.getTitle())
@@ -39,7 +47,24 @@ public class AdminElectionService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return electionRepository.save(election);
+        // Persist first so we have the generated UUID
+        election = electionRepository.save(election);
+
+        if (logoFile != null && !logoFile.isEmpty()) {
+            // Save logo as elections/{electionId}/logo.png
+            String logoPath = fileStorageService.saveFile(
+                    logoFile,
+                    "elections",
+                    election.getId().toString(),
+                    "logo.png");
+            election.setLogoPath(logoPath);
+            election = electionRepository.save(election);
+        } else {
+            // Ensure the election directory exists even without a logo
+            fileStorageService.createDirectory("elections", election.getId().toString());
+        }
+
+        return election;
     }
 
     public Election publishElection(UUID electionId) {
@@ -92,7 +117,7 @@ public class AdminElectionService {
 
         Ballot ballot = getBallotOrThrow(ballotId);
 
-        // Unpublish all ballots of same election
+        // Unpublish all ballots of the same election
         List<Ballot> ballots =
                 ballotRepository.findByElection_Id(ballot.getElection().getId());
 
@@ -101,7 +126,6 @@ public class AdminElectionService {
         }
 
         ballot.setStatus("PUBLISHED");
-
         ballotRepository.saveAll(ballots);
 
         return ballotRepository.save(ballot);
@@ -126,7 +150,13 @@ public class AdminElectionService {
                             CANDIDATE
        ========================================================= */
 
-    public Candidate createCandidate(UUID ballotId, CreateCandidateRequest request) {
+    /**
+     * Creates a candidate and, if a photo file is provided, saves it to
+     * Storage/elections/{electionId}/candidates/{candidateId}.jpg
+     * and stores the path on the entity.
+     */
+    public Candidate createCandidate(UUID ballotId, CreateCandidateRequest request,
+                                     MultipartFile photoFile) throws IOException {
 
         Ballot ballot = getBallotOrThrow(ballotId);
 
@@ -138,7 +168,23 @@ public class AdminElectionService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return candidateRepository.save(candidate);
+        // Persist first so we have the generated UUID
+        candidate = candidateRepository.save(candidate);
+
+        if (photoFile != null && !photoFile.isEmpty()) {
+            UUID electionId = ballot.getElection().getId();
+            // Save photo as elections/{electionId}/candidates/{candidateId}.jpg
+            String photoPath = fileStorageService.saveFile(
+                    photoFile,
+                    "elections",
+                    electionId.toString(),
+                    "candidates",
+                    candidate.getId().toString() + ".jpg");
+            candidate.setPhotoPath(photoPath);
+            candidate = candidateRepository.save(candidate);
+        }
+
+        return candidate;
     }
 
     public List<Candidate> getCandidatesByBallot(UUID ballotId) {

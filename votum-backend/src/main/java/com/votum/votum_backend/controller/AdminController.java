@@ -1,5 +1,6 @@
 package com.votum.votum_backend.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.votum.votum_backend.dto.*;
 import com.votum.votum_backend.model.Election;
 import com.votum.votum_backend.service.AdminElectionService;
@@ -8,9 +9,12 @@ import com.votum.votum_backend.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,6 +26,7 @@ public class AdminController {
     private final AdminService adminService;
     private final AdminElectionService adminElectionService;
     private final UserService userService;
+    private final ObjectMapper objectMapper;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -50,9 +55,23 @@ public class AdminController {
 
     // ================= ELECTION =================
 
-    @PostMapping("/elections")
-    public ResponseEntity<?> createElection(@RequestBody CreateElectionRequest request) {
-        Election election = adminElectionService.createElection(request);
+    /**
+     * Creates an election with an optional logo image.
+     *
+     * Request: multipart/form-data
+     *   - request (part): JSON CreateElectionRequest
+     *   - logo    (part): image file (optional)
+     */
+    @PostMapping(value = "/elections", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createElection(
+            @RequestPart("request") String requestJson,
+            @RequestPart(value = "logo", required = false) MultipartFile logo)
+            throws IOException {
+
+        CreateElectionRequest request =
+                objectMapper.readValue(requestJson, CreateElectionRequest.class);
+
+        Election election = adminElectionService.createElection(request, logo);
         return ResponseEntity.ok(election);
     }
 
@@ -65,12 +84,26 @@ public class AdminController {
         );
     }
 
-    @PostMapping("/ballots/{ballotId}/candidates")
+    /**
+     * Creates a candidate with an optional photo image.
+     *
+     * Request: multipart/form-data
+     *   - request (part): JSON CreateCandidateRequest
+     *   - photo   (part): image file (optional)
+     */
+    @PostMapping(value = "/ballots/{ballotId}/candidates",
+                 consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createCandidate(
             @PathVariable UUID ballotId,
-            @RequestBody CreateCandidateRequest request) {
+            @RequestPart("request") String requestJson,
+            @RequestPart(value = "photo", required = false) MultipartFile photo)
+            throws IOException {
+
+        CreateCandidateRequest request =
+                objectMapper.readValue(requestJson, CreateCandidateRequest.class);
+
         return ResponseEntity.ok(
-                adminElectionService.createCandidate(ballotId, request)
+                adminElectionService.createCandidate(ballotId, request, photo)
         );
     }
 
@@ -117,6 +150,5 @@ public class AdminController {
         adminElectionService.deleteElection(id);
         return ResponseEntity.ok("Election deleted successfully");
     }
-
 
 }
