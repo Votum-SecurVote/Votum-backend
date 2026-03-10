@@ -79,6 +79,12 @@ public class KioskService {
             throw new RuntimeException("User already voted in this election");
         }
 
+        // Increment candidate vote count
+        Candidate candidate = candidateRepository.findById(request.getCandidateId())
+                .orElseThrow(() -> new RuntimeException("Candidate not found"));
+        candidate.setVoteCount(candidate.getVoteCount() + 1);
+        candidateRepository.save(candidate);
+
         Vote vote = new Vote();
         vote.setUser(user);
         vote.setElectionId(request.getElectionId());
