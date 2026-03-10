@@ -130,14 +130,11 @@ class AdminIntegrationTest {
         request.setStartDate(LocalDateTime.now().plusDays(1));
         request.setEndDate(LocalDateTime.now().plusDays(30));
 
-        MockMultipartFile requestPart = new MockMultipartFile(
-                "request", "", MediaType.APPLICATION_JSON_VALUE,
-                objectMapper.writeValueAsBytes(request));
-
         // Act & Assert
-        mockMvc.perform(multipart("/api/admin/elections")
-                        .file(requestPart)
-                        .header("Authorization", "Bearer " + adminToken))
+        mockMvc.perform(post("/api/admin/elections")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.title").value("General Election 2024"))
@@ -207,7 +204,6 @@ class AdminIntegrationTest {
         CreateCandidateRequest request = new CreateCandidateRequest();
         request.setName("Michael Brown");
         request.setParty("Independent");
-        request.setSymbol("🏛️");
 
         MockMultipartFile requestPart = new MockMultipartFile(
                 "request", "", MediaType.APPLICATION_JSON_VALUE,
@@ -220,8 +216,7 @@ class AdminIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.name").value("Michael Brown"))
-                .andExpect(jsonPath("$.party").value("Independent"))
-                .andExpect(jsonPath("$.symbol").value("🏛️"));
+                .andExpect(jsonPath("$.party").value("Independent"));
 
         // Verify in database
         List<Candidate> candidates = candidateRepository.findAll();
@@ -324,14 +319,12 @@ class AdminIntegrationTest {
         candidate1.setBallot(ballot);
         candidate1.setName("Alice Johnson");
         candidate1.setParty("Party A");
-        candidate1.setSymbol("🌟");
         candidateRepository.save(candidate1);
 
         Candidate candidate2 = new Candidate();
         candidate2.setBallot(ballot);
         candidate2.setName("Bob Smith");
         candidate2.setParty("Party B");
-        candidate2.setSymbol("⭐");
         candidateRepository.save(candidate2);
 
         // Act & Assert
@@ -456,13 +449,10 @@ class AdminIntegrationTest {
         electionRequest.setStartDate(LocalDateTime.now().plusDays(1));
         electionRequest.setEndDate(LocalDateTime.now().plusDays(30));
 
-        MockMultipartFile electionRequestPart = new MockMultipartFile(
-                "request", "", MediaType.APPLICATION_JSON_VALUE,
-                objectMapper.writeValueAsBytes(electionRequest));
-
-        String electionResponse = mockMvc.perform(multipart("/api/admin/elections")
-                        .file(electionRequestPart)
-                        .header("Authorization", "Bearer " + adminToken))
+        String electionResponse = mockMvc.perform(post("/api/admin/elections")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(electionRequest)))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -490,7 +480,6 @@ class AdminIntegrationTest {
         CreateCandidateRequest candidate1Request = new CreateCandidateRequest();
         candidate1Request.setName("Candidate One");
         candidate1Request.setParty("Party One");
-        candidate1Request.setSymbol("1️⃣");
 
         MockMultipartFile candidate1Part = new MockMultipartFile(
                 "request", "", MediaType.APPLICATION_JSON_VALUE,
@@ -504,7 +493,6 @@ class AdminIntegrationTest {
         CreateCandidateRequest candidate2Request = new CreateCandidateRequest();
         candidate2Request.setName("Candidate Two");
         candidate2Request.setParty("Party Two");
-        candidate2Request.setSymbol("2️⃣");
 
         MockMultipartFile candidate2Part = new MockMultipartFile(
                 "request", "", MediaType.APPLICATION_JSON_VALUE,

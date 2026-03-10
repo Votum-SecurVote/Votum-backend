@@ -29,7 +29,8 @@ public class Candidate {
 
     private String party;
 
-    private String symbol;
+    @Column(name = "symbol_path")
+    private String symbolPath;
 
     @Column(name = "photo_path")
     private String photoPath;
