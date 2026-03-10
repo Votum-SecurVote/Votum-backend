@@ -40,7 +40,9 @@ public class FileStorageService {
         // Copy file, replacing if exists
         Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-        return targetPath.toAbsolutePath().toString();
+        // Return the RELATIVE path (joined segments) — NOT the absolute OS path.
+        // FileController resolves this relative to storagePath: /api/files/{relativePath}
+        return String.join("/", pathParts);
     }
 
     /**

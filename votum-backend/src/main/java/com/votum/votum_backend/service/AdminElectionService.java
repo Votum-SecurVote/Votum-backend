@@ -1,5 +1,6 @@
 package com.votum.votum_backend.service;
 
+import com.votum.votum_backend.dto.AdminMetricsResponse;
 import com.votum.votum_backend.dto.CreateBallotRequest;
 import com.votum.votum_backend.dto.CreateCandidateRequest;
 import com.votum.votum_backend.dto.CreateElectionRequest;
@@ -9,6 +10,7 @@ import com.votum.votum_backend.model.Election;
 import com.votum.votum_backend.repository.BallotRepository;
 import com.votum.votum_backend.repository.CandidateRepository;
 import com.votum.votum_backend.repository.ElectionRepository;
+import com.votum.votum_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +28,7 @@ public class AdminElectionService {
     private final BallotRepository ballotRepository;
     private final CandidateRepository candidateRepository;
     private final FileStorageService fileStorageService;
+    private final UserRepository userRepository;
 
     /* =========================================================
                             ELECTION
@@ -64,6 +67,24 @@ public class AdminElectionService {
 
     public List<Election> getAllElections() {
         return electionRepository.findAll();
+    }
+
+    public AdminMetricsResponse getMetrics() {
+        long totalElections = electionRepository.count();
+        long activeElections = electionRepository.findAll().stream()
+                .filter(e -> "PUBLISHED".equals(e.getStatus())).count();
+        long pendingUsers = userRepository.findByStatus("PENDING").size();
+        long approvedUsers = userRepository.findByStatus("APPROVED").size();
+
+        return AdminMetricsResponse.builder()
+                .totalElections(totalElections)
+                .activeElections(activeElections)
+                .pendingCandidates(pendingUsers)
+                .approvedCandidates(approvedUsers)
+                .recentActivity(List.of(
+                        "System metrics loaded at " + LocalDateTime.now().toString()
+                ))
+                .build();
     }
 
     private Election getElectionOrThrow(UUID id) {

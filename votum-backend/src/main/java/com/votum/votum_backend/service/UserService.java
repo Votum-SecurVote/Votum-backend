@@ -136,17 +136,21 @@ public class UserService {
         List<User> users = userRepository.findByStatus("PENDING");
 
         return users.stream()
-                .map(user -> UserProfileResponse.builder()
-                        .fullName(user.getFullName())
-                        .userId(user.getId().toString())
-                        .email(user.getEmail())
-                        .phone(user.getPhone())
-                        .dob(user.getDob())
-                        .gender(user.getGender())
-                        .address(user.getAddress())
-                        .status(user.getStatus())
-                        .build()
-                )
+                .map(user -> {
+                    UserBiometrics bio = biometricsRepository.findById(user.getId()).orElse(null);
+                    return UserProfileResponse.builder()
+                            .fullName(user.getFullName())
+                            .userId(user.getId().toString())
+                            .email(user.getEmail())
+                            .phone(user.getPhone())
+                            .dob(user.getDob())
+                            .gender(user.getGender())
+                            .address(user.getAddress())
+                            .status(user.getStatus())
+                            .photoPath(bio != null ? bio.getPhotoPath() : null)
+                            .aadhaarPdfPath(bio != null ? bio.getAadhaarPdfPath() : null)
+                            .build();
+                })
                 .toList();
     }
 
@@ -175,17 +179,21 @@ public class UserService {
     public List<UserProfileResponse> getAllUsers() {
 
         return userRepository.findAll().stream()
-                .map(user -> UserProfileResponse.builder()
-                        .userId(user.getId().toString())
-                        .fullName(user.getFullName())
-                        .email(user.getEmail())
-                        .phone(user.getPhone())
-                        .dob(user.getDob())
-                        .gender(user.getGender())
-                        .address(user.getAddress())
-                        .status(user.getStatus())
-                        .build()
-                )
+                .map(user -> {
+                    UserBiometrics bio = biometricsRepository.findById(user.getId()).orElse(null);
+                    return UserProfileResponse.builder()
+                            .userId(user.getId().toString())
+                            .fullName(user.getFullName())
+                            .email(user.getEmail())
+                            .phone(user.getPhone())
+                            .dob(user.getDob())
+                            .gender(user.getGender())
+                            .address(user.getAddress())
+                            .status(user.getStatus())
+                            .photoPath(bio != null ? bio.getPhotoPath() : null)
+                            .aadhaarPdfPath(bio != null ? bio.getAadhaarPdfPath() : null)
+                            .build();
+                })
                 .toList();
     }
 
