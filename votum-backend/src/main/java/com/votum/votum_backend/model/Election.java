@@ -31,9 +31,6 @@ public class Election {
 
     private String status;
 
-    @Column(name = "logo_path")
-    private String logoPath;
-
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "election", cascade = CascadeType.ALL, fetch = FetchType.EAGER)

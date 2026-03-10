@@ -31,12 +31,7 @@ public class AdminElectionService {
                             ELECTION
        ========================================================= */
 
-    /**
-     * Creates an election and, if a logo file is provided, saves it to
-     * Storage/elections/{electionId}/logo.png and stores the path on the entity.
-     */
-    public Election createElection(CreateElectionRequest request, MultipartFile logoFile)
-            throws IOException {
+    public Election createElection(CreateElectionRequest request) {
 
         Election election = Election.builder()
                 .title(request.getTitle())
@@ -47,24 +42,7 @@ public class AdminElectionService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        // Persist first so we have the generated UUID
-        election = electionRepository.save(election);
-
-        if (logoFile != null && !logoFile.isEmpty()) {
-            // Save logo as elections/{electionId}/logo.png
-            String logoPath = fileStorageService.saveFile(
-                    logoFile,
-                    "elections",
-                    election.getId().toString(),
-                    "logo.png");
-            election.setLogoPath(logoPath);
-            election = electionRepository.save(election);
-        } else {
-            // Ensure the election directory exists even without a logo
-            fileStorageService.createDirectory("elections", election.getId().toString());
-        }
-
-        return election;
+        return electionRepository.save(election);
     }
 
     public Election publishElection(UUID electionId) {
@@ -156,7 +134,8 @@ public class AdminElectionService {
      * and stores the path on the entity.
      */
     public Candidate createCandidate(UUID ballotId, CreateCandidateRequest request,
-                                     MultipartFile photoFile) throws IOException {
+                                     MultipartFile photoFile,
+                                     MultipartFile symbolFile) throws IOException {
 
         Ballot ballot = getBallotOrThrow(ballotId);
 
@@ -164,15 +143,15 @@ public class AdminElectionService {
                 .ballot(ballot)
                 .name(request.getName())
                 .party(request.getParty())
-                .symbol(request.getSymbol())
                 .createdAt(LocalDateTime.now())
                 .build();
 
         // Persist first so we have the generated UUID
         candidate = candidateRepository.save(candidate);
 
+        UUID electionId = ballot.getElection().getId();
+
         if (photoFile != null && !photoFile.isEmpty()) {
-            UUID electionId = ballot.getElection().getId();
             // Save photo as elections/{electionId}/candidates/{candidateId}.jpg
             String photoPath = fileStorageService.saveFile(
                     photoFile,
@@ -181,6 +160,21 @@ public class AdminElectionService {
                     "candidates",
                     candidate.getId().toString() + ".jpg");
             candidate.setPhotoPath(photoPath);
+        }
+
+        if (symbolFile != null && !symbolFile.isEmpty()) {
+            // Save symbol logo as elections/{electionId}/candidates/{candidateId}_symbol.png
+            String symbolPath = fileStorageService.saveFile(
+                    symbolFile,
+                    "elections",
+                    electionId.toString(),
+                    "candidates",
+                    candidate.getId().toString() + "_symbol.png");
+            candidate.setSymbolPath(symbolPath);
+        }
+
+        if ((photoFile != null && !photoFile.isEmpty()) ||
+            (symbolFile != null && !symbolFile.isEmpty())) {
             candidate = candidateRepository.save(candidate);
         }
 

@@ -6,5 +6,4 @@ import lombok.Data;
 public class CreateCandidateRequest {
     private String name;
     private String party;
-    private String symbol;
 }

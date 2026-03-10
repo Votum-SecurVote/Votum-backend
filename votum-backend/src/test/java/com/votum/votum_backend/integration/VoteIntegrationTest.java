@@ -119,14 +119,12 @@ class VoteIntegrationTest {
         candidate1.setBallot(ballot);
         candidate1.setName("John Smith");
         candidate1.setParty("Democratic Party");
-        candidate1.setSymbol("🔵");
         candidate1 = candidateRepository.save(candidate1);
 
         candidate2 = new Candidate();
         candidate2.setBallot(ballot);
         candidate2.setName("Jane Doe");
         candidate2.setParty("Republican Party");
-        candidate2.setSymbol("🔴");
         candidate2 = candidateRepository.save(candidate2);
     }
 

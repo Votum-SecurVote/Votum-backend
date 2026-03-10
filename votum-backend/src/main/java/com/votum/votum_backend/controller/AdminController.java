@@ -55,23 +55,9 @@ public class AdminController {
 
     // ================= ELECTION =================
 
-    /**
-     * Creates an election with an optional logo image.
-     *
-     * Request: multipart/form-data
-     *   - request (part): JSON CreateElectionRequest
-     *   - logo    (part): image file (optional)
-     */
-    @PostMapping(value = "/elections", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createElection(
-            @RequestPart("request") String requestJson,
-            @RequestPart(value = "logo", required = false) MultipartFile logo)
-            throws IOException {
-
-        CreateElectionRequest request =
-                objectMapper.readValue(requestJson, CreateElectionRequest.class);
-
-        Election election = adminElectionService.createElection(request, logo);
+    @PostMapping("/elections")
+    public ResponseEntity<?> createElection(@RequestBody CreateElectionRequest request) {
+        Election election = adminElectionService.createElection(request);
         return ResponseEntity.ok(election);
     }
 
@@ -96,14 +82,15 @@ public class AdminController {
     public ResponseEntity<?> createCandidate(
             @PathVariable UUID ballotId,
             @RequestPart("request") String requestJson,
-            @RequestPart(value = "photo", required = false) MultipartFile photo)
+            @RequestPart(value = "photo", required = false) MultipartFile photo,
+            @RequestPart(value = "symbol", required = false) MultipartFile symbol)
             throws IOException {
 
         CreateCandidateRequest request =
                 objectMapper.readValue(requestJson, CreateCandidateRequest.class);
 
         return ResponseEntity.ok(
-                adminElectionService.createCandidate(ballotId, request, photo)
+                adminElectionService.createCandidate(ballotId, request, photo, symbol)
         );
     }
 
