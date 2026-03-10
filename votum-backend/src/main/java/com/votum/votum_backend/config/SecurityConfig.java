@@ -31,6 +31,7 @@ public class SecurityConfig {
                         "/api/auth/login",
                         "/api/admin/login",
                         "/api/kiosk/login",
+                        "/api/files/**",
                         "/error"
                 ).permitAll()
 

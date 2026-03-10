@@ -125,6 +125,7 @@ public class UserService {
                 .address(user.getAddress())
                 .status(user.getStatus())
                 .photoPath(biometrics != null ? biometrics.getPhotoPath() : null)
+                .aadhaarPdfPath(biometrics != null ? biometrics.getAadhaarPdfPath() : null)
                 .build();
     }
 
