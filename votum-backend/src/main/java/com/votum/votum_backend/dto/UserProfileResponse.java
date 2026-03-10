@@ -18,4 +18,5 @@ public class UserProfileResponse {
     private String address;
     private String status;
     private String photoPath;
+    private String aadhaarPdfPath;
 }
