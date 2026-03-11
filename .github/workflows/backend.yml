@@ -80,6 +80,7 @@ jobs:
               --restart always \
               --network votum-network \
               --env-file .env \
+              -v votum-storage:/app/storage \
               ${{ secrets.DOCKER_USERNAME }}/votum-backend:latest
 
       # -------------------------
